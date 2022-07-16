@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Results{% endblock %}
+
+{% block content %}
+<div class="content">
+  <h1>Your Buoy Information</h1>
+
+  <p>Buoy ID: {{buoy_id}}</p>
+  <p>Buoy URL: https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/{{buoy_id}}/{{buoy_id}}.ncml</p>
+  <br>
+  <button type="button" class="btn btn-primary" onClick="history.back()">Back</button>
+
+</div>
+{% endblock %}

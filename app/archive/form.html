@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block head %}{% endblock %}
+
+{% block body %}
+<form action="{{ url_for("search")}}" method="post">
+  <label for="buoy_id">Find a Buoy</label>
+  <input type="text" id="buoy_id" name="buoy_id" placeholder="Enter #">
+  <button type="submit">Search</button>
+</form>
+{% endblock %}
