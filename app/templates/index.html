@@ -1,12 +1,25 @@
 {% extends 'base.html' %}
-{% block title %}Home{% endblock %}
+{% block title %}Home | Find a Buoy{% endblock %}
 
 {% block content %}
 <div class="content">
   <h1>Find a Buoy</h1>
 
   <form method="POST">
-    <input type="text" name="buoy_id" id="buoy_id"></input>
+    <input type="text" name="buoy_id" id="buoy_id"></input><br>
+    <input type="checkbox" name="checkbox_data" value="air_temp"> Air Temperature<br>
+    <input type="checkbox" name="checkbox_data" value="sea_surface_temp"> Sea Surface Temperature<br>
+    <input type="checkbox" name="checkbox_data" value="wind_dir"> Wind Direction<br>
+    <input type="checkbox" name="checkbox_data" value="wind_spd"> Wind Speed<br>
+    <input type="checkbox" name="checkbox_data" value="gust"> Gust<br>
+    <input type="checkbox" name="checkbox_data" value="wave-height"> Wave Height<br>
+    <input type="checkbox" name="checkbox_data" value="dominant_wpd"> Dominant WPD<br>
+    <input type="checkbox" name="checkbox_data" value="average_wpd"> Average WPD<br>
+    <input type="checkbox" name="checkbox_data" value="mean_wave_dir"> Mean Wave Direction<br>
+    <input type="checkbox" name="checkbox_data" value="air_pressure"> Air Pressure<br>
+    <input type="checkbox" name="checkbox_data" value="dewpt_temperature"> Dew Point Temperature<br>
+    <input type="checkbox" name="checkbox_data" value="visibility"> Visibility<br>
+    <input type="checkbox" name="checkbox_data" value="water_level"> Water Level<br>
     <input type="submit" class="btn btn-primary" value="Find Buoy"></input>
   </form>
 

@@ -6,7 +6,12 @@
   <h1>Your Buoy Information</h1>
 
   <p>Buoy ID: {{buoy_id}}</p>
-  <p>Buoy URL: https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/{{buoy_id}}/{{buoy_id}}.ncml</p>
+  <p>Buoy URL: {{url}}</p>
+  <br>
+  <p>Checked items</p>
+    {% for item in checkbox_data %}
+      {{ item }}<br>
+    {% endfor %}
   <br>
   <button type="button" class="btn btn-primary" onClick="history.back()">Back</button>
 
