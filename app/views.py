@@ -23,10 +23,18 @@ def create_url(buoy_id):
 
     return url
 
+# Function: create url to generate widget on results page
+def create_widget_url(buoy_id):
+    widget_url = 'https://www.ndbc.noaa.gov/widgets/station_page.php?station=' + buoy_id
+
+    return widget_url
+
 # Function: Find Buoy and print results to page
 @views.route('/results/<buoy_id>')
 def find_buoy(buoy_id):
     url = create_url(buoy_id)
+    widget_url = create_widget_url(buoy_id)
+
     checkbox_data = session["params"]
 
     data = xr.open_dataset(url)
@@ -38,4 +46,4 @@ def find_buoy(buoy_id):
 #    df.sea_surface_temperature.plot()
 #    air_temp = data.air_temperature
 
-    return render_template('results.html', buoy_id=buoy_id, checkbox_data=checkbox_data, url=url)
+    return render_template('results.html', buoy_id=buoy_id, checkbox_data=checkbox_data, url=url, widget_url=widget_url)
