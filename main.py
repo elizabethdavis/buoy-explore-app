@@ -3,27 +3,27 @@ import xarray as xr
 import pandas as pd
 
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput
+from bokeh.models import ColumnDataSource, CDSView, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput, LabelSet
 from bokeh.models.widgets import CheckboxGroup
 from bokeh.io import show, curdoc
 from bokeh.layouts import column, row, grid, WidgetBox
 from datetime import date
+from bokeh.palettes import Spectral4
 
 bokeh_doc = curdoc()
+
+# Order of opterations
+# find_dataset()
+# make_plot()
+# filter_dataset()
+# update_plot()
+# find_dataset()
+# filter_dataset()
 
 # ------------------------------------------------------------------------------
 # Function: load dataset
 # ------------------------------------------------------------------------------
-#def get_dataset():
-#    data = xr.open_dataset('https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/44025/44025.ncml')
-#    data = data.sel(time=slice('2019-01-01', '2020-01-01'))
-#    df = data.to_dataframe().reset_index().set_index('time')
-#    source = ColumnDataSource(df)
-
-#    return source
-
-def make_dataset(buoy_input, checkbox_group, start_date, end_date):
-
+def find_dataset(buoy_input, start_date, end_date):
     data_url = 'https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/' + buoy_input + '/' + buoy_input + '.ncml'
     ds = xr.open_dataset(data_url)
     ds = ds.sel(time=slice(start_date, end_date))
@@ -32,22 +32,25 @@ def make_dataset(buoy_input, checkbox_group, start_date, end_date):
 
     print("url: " + data_url)
     print("Data has been found for buoy #" + buoy_input)
+
     return source
 
 def make_plot(source, buoy_input, checkbox_group):
     p = figure(plot_width = 700, plot_height = 700,
-               title = 'Plot for Buoy #' + buoy_input,
-               x_axis_label = 'Time')
+               x_axis_label = 'Time',
+               x_axis_type = "datetime")
 
-    for i in checkbox_group:
-        print("labels: " + i)
+    # this needs to become a multiline plot?
+    p.line(x='time', y='sea_surface_temperature', legend_label = "Sea Surface Temperature", source=source)
+    p.line(x='time', y='air_temperature', legend_label = "Air Temperature", source=source)
 
-    print("Generating plot for buoy # " + buoy_input)
-
-    # this needs to become a multiline plot
-    p.line(x='time', y=checkbox_group[0], source=source)
+    p.legend.click_policy = "hide"
 
     return p
+
+def filter_dataset(source, checkbox_group):
+    view = CDSView(source=source, filters=[IndexFilter([0,2,4])])
+    # create one view that finds which checkboxes are checked, and displays that on the multiline chart
 
 # ------------------------------------------------------------------------------
 # Function: update plot based on selections
@@ -69,13 +72,11 @@ def update_plot(attr, old, new):
      buoy_input_updated = buoy_input.value
      print("buoy ID:" + buoy_input_updated)
 
-     source_updated = make_dataset(buoy_input = buoy_input_updated,
-                                   checkbox_group = checkbox_group_updated,
+     source_updated = find_dataset(buoy_input = buoy_input_updated,
                                    start_date = start_date_updated,
                                    end_date = end_date_updated)
 
-     # i think this is the problem child for not updating the plot
-     source.data.update(source_updated.data)
+     source.data = dict(source_updated.data)
 # ------------------------------------------------------------------------------
 # Widget creation and customization
 # ------------------------------------------------------------------------------
@@ -106,8 +107,6 @@ columns = [
     TableColumn(field="water_level", title="Water Level"),
 ]
 
-#data_table = DataTable(source=source, columns=columns, width=1400, height=280)
-
 # ------------------------------------------------------------------------------
 # Widget: Date Picker
 # ------------------------------------------------------------------------------
@@ -136,12 +135,14 @@ checkbox_group.on_change('active', update_plot)
 # ------------------------------------------------------------------------------
 initial_checkbox_group = [checkbox_group.labels[i] for i in checkbox_group.active]
 
-source = make_dataset(buoy_input = buoy_input.value,
-                      checkbox_group = initial_checkbox_group,
+source = find_dataset(buoy_input = buoy_input.value,
                       start_date = start_date_picker.value,
                       end_date = end_date_picker.value)
 
+#labels = LabelSet(x='Time', title="Buoy # " + buoy_input.value, source=source)
+
 p = make_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
+data_table = DataTable(source=source, columns=columns, width=1400, height=280)
 
 # put controls in a single element
 controls = column(start_date_picker, end_date_picker, buoy_input, checkbox_group)
@@ -164,3 +165,25 @@ layout = row(controls, p)
 #bokeh_doc.add_root(p)
 #bokeh_doc.add_root(data_table)
 bokeh_doc.add_root(layout)
+bokeh_doc.add_root(data_table)
+bokeh_doc.title = "Buoy Interactive Tool"
+
+#src = ColumnDataSource(data=dict(
+#    xs=[[1,2,3], [1,3,4], [2, 3, 4]],
+#    ys=[[1,3,2], [5,4,3], [9, 8, 9]],
+#    alpha=[1, 1, 1]
+#))
+
+#p = figure(y_range=(0, 10))
+#p.multi_line("xs", "ys", line_alpha="alpha", line_width=3, source=src)
+
+#cb = CheckboxGroup(labels=["L0", "L1", "L2"], active=[0, 1, 2])
+
+#def update(attr, old, new):
+    # you'll have to supply logic to determine which indices to "show" and
+    # which to "hide" based on checkbox according to your actual situation
+#    src.data["alpha"] = [int(i in cb.active) for i in range(len(cb.labels))]
+
+#cb.on_change('active', update)
+
+#curdoc().add_root(row(p, cb))
