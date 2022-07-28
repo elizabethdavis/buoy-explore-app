@@ -1,0 +1,92 @@
+{% extends base %}
+{% block preamble %}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Montserrat|Quicksand');
+        body {
+            font-family: "Quicksand";
+        }
+        .bk-root {
+            font-family: "Quicksand" !important;
+        }
+        .plot-tooltip {
+            margin: 10px;
+        }
+        .slick-header-columns, .slick-header-column {
+            background-color: #DDDDDD !important;
+            background-image: none !important;
+        }
+        .row {
+          display: flex;
+        }
+    </style>
+
+{% endblock %}
+{% block contents%}
+    <div class="container">
+        <div class="row">
+            <div class="col-3">
+                <h1>Buoy Explore Tool</h1>
+            </div>
+            <div class="col-9">
+                <h4>
+                    Realtime feed of buoys maintained by the National Buoy Data Center
+                </h4>
+                <p>
+                    This Bokeh application uses open data from the Thredds Server of the National Buoy Data Center. The default
+                    time period is set to the past year.
+                </p>
+            </div>
+        </div>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbar">
+            <div class="navbar-nav">
+              <a class="nav-item nav-link" id="home" href="index.html">Home</a>
+              <a class="nav-item nav-link" id="logout" href="about.html">About</a>
+            </div>
+          </div>
+        </nav>
+        <div class="row">
+          <div class="col-4">
+              {{ embed(roots.buoy_input) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.start_date) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.end_date) }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4">
+              {{ embed(roots.temperature_plot) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.pressure_plot) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.direction_plot) }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-4">
+              {{ embed(roots.speed_plot) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.tide_plot) }}
+          </div>
+          <div class="col-4">
+              {{ embed(roots.wave_period_plot) }}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-12">
+              {{ embed(roots.data_table) }}
+          </div>
+      </div>
+    </div>
+{% endblock %}
