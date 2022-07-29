@@ -20,6 +20,13 @@
         .row {
           display: flex;
         }
+        .controls-style {
+          padding: 16px;
+          border: 1px solid;
+          border-color: #c7ccdb;
+          border-radius: 4px;
+          background-color: #e1e5ee;
+        }
     </style>
 
 {% endblock %}
@@ -39,18 +46,7 @@
                 </p>
             </div>
         </div>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbar">
-            <div class="navbar-nav">
-              <a class="nav-item nav-link" id="home" href="index.html">Home</a>
-              <a class="nav-item nav-link" id="logout" href="about.html">About</a>
-            </div>
-          </div>
-        </nav>
-        <div class="row">
+        <div class="row controls-style">
           <div class="col-4">
               {{ embed(roots.buoy_input) }}
           </div>
@@ -61,27 +57,29 @@
               {{ embed(roots.end_date) }}
           </div>
         </div>
+          <div class="row">
+            <div class="col-6">
+                {{ embed(roots.temperature_plot) }}
+            </div>
+            <div class="col-6">
+                {{ embed(roots.pressure_plot) }}
+            </div>
+          </div>
         <div class="row">
-          <div class="col-4">
-              {{ embed(roots.temperature_plot) }}
-          </div>
-          <div class="col-4">
-              {{ embed(roots.pressure_plot) }}
-          </div>
-          <div class="col-4">
-              {{ embed(roots.direction_plot) }}
-          </div>
+            <div class="col-6">
+                {{ embed(roots.direction_plot) }}
+            </div>
+            <div class="col-6">
+                {{ embed(roots.speed_plot) }}
+            </div>
         </div>
         <div class="row">
-          <div class="col-4">
-              {{ embed(roots.speed_plot) }}
-          </div>
-          <div class="col-4">
-              {{ embed(roots.tide_plot) }}
-          </div>
-          <div class="col-4">
-              {{ embed(roots.wave_period_plot) }}
-          </div>
+            <div class="col-6">
+                {{ embed(roots.tide_plot) }}
+            </div>
+            <div class="col-6">
+                {{ embed(roots.wave_period_plot) }}
+            </div>
         </div>
         <div class="row">
           <div class="col-12">

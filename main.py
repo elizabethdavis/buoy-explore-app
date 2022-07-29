@@ -9,7 +9,7 @@ from bokeh.models.widgets import CheckboxGroup, NumberFormatter
 from bokeh.io import show, curdoc
 from bokeh.layouts import column, row, grid, WidgetBox
 from datetime import date
-from bokeh.palettes import Spectral4 as palette
+from bokeh.palettes import YlGnBu9 as palette
 
 bokeh_doc = curdoc()
 
@@ -29,102 +29,49 @@ def find_dataset(buoy_input, start_date, end_date):
     return source
 
 def make_temp_plot(source, buoy_input, checkbox_group):
-    p = figure(plot_width = 500, plot_height = 300,
+    air_hover = HoverTool(
+        tooltips = [
+            ('Air Temp', '@air_temperature{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['air_hover'],
+            mode='vline')
+
+    sea_hover = HoverTool(
+        tooltips = [
+            ('Sea Surface Temperature', '@sea_surface_temperature{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['sea_hover'],
+            mode='vline')
+
+    dewpt_hover = HoverTool(
+        tooltips = [
+            ('Dew Point Temperature', '@dewpt_temperature{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['dewpt_hover'],
+            mode='vline')
+
+    p = figure(plot_width = 600, plot_height = 400,
                x_axis_label = 'Time',
                x_axis_type = "datetime",
                y_axis_label = 'degrees C',
                title="Temperature",
-               name="temperature_plot")
-
-    color = itertools.cycle(palette)
+               name="temperature_plot",
+               sizing_mode="scale_width")
 
     # temperature plot (degrees Celsius)
-    p.line(x='time', y='air_temperature', legend_label = "Air Temperature", source=source, color=next(color))
-    p.line(x='time', y='sea_surface_temperature', legend_label = "Sea Surface Temperature", source=source, color=next(color))
-    p.line(x='time', y='dewpt_temperature', legend_label = "Dew Point Temperature", source=source, color=next(color))
+    air = p.line(x='time', y='air_temperature', legend_label = "Air Temperature", source=source, color=palette[1], name='air_hover')
+    p.add_tools(air_hover)
+    sea = p.line(x='time', y='sea_surface_temperature', legend_label = "Sea Surface Temperature", source=source, color=palette[2], name='sea_hover')
+    p.add_tools(sea_hover)
+    dewpt = p.line(x='time', y='dewpt_temperature', legend_label = "Dew Point Temperature", source=source, color=palette[3], name='dewpt_hover')
+    p.add_tools(dewpt_hover)
 
     p.legend.click_policy = "hide"
 
     return p
-
-def make_wvpd_plot(source, buoy_input, checkbox_group):
-    p_wvpd = figure(plot_width = 500, plot_height = 300,
-               x_axis_label = 'Time',
-               x_axis_type = "datetime",
-               y_axis_label = 'seconds',
-               title="Dominant and Average Wave Period",
-               name="wave_period_plot")
-
-    # wave period plot (seconds)
-    p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source)
-    p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source)
-
-    p_wvpd.legend.click_policy = "hide"
-
-    return p_wvpd
-
-def make_dir_plot(source, buoy_input, checkbox_group):
-    p_dir = figure(plot_width = 500, plot_height = 300,
-                   x_axis_label = 'Time',
-                   x_axis_type = "datetime",
-                   y_axis_label = 'Degrees from true north (degT)',
-                   title="Mean wave direction & wind direction",
-                   name="direction_plot")
-
-    # (degrees from true north (degT))
-    p_dir.line(x='time', y='mean_wave_dir', legend_label = "Mean Wave Direction", source=source)
-    p_dir.line(x='time', y='wind_dir', legend_label = "Wind Direction", source=source)
-
-    p_dir.legend.click_policy = "hide"
-
-    return p_dir
-
-def make_tide_plot(source, buoy_input, checkbox_group):
-    p_tide = figure(plot_width = 500, plot_height = 300,
-                    x_axis_label = 'Time',
-                    x_axis_type = "datetime",
-                    y_axis_label = 'meters',
-                    title="Wave Height & Tide",
-                    name="tide_plot")
-
-    # (meters)
-    p_tide.scatter(x='time', y='wave_height', legend_label = "Wave Height", source=source)
-    p_tide.scatter(x='time', y='water_level', legend_label = "Water Level", source=source)
-
-    p_tide.legend.click_policy = "hide"
-
-    return p_tide
-
-def make_speed_plot(source, buoy_input, checkbox_group):
-    p_speed = figure(plot_width = 500, plot_height = 300,
-                     x_axis_label = 'Time',
-                     x_axis_type = "datetime",
-                     y_axis_label = 'm/s',
-                     title="Wind Speed & Gust",
-                     name="speed_plot")
-
-    # wind speed and gust (m/s)
-    p_speed.scatter(x='time', y='gust', legend_label = "Gust", source=source, alpha=0.3)
-    p_speed.scatter(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, alpha=0.3)
-
-    p_speed.legend.click_policy = "hide"
-
-    return p_speed
-
-def make_viz_plot(source, buoy_input, checkbox_group):
-    p_viz = figure(plot_width = 500, plot_height = 300,
-                   x_axis_label = 'Time',
-                   x_axis_type = "datetime",
-                   y_axis_label = 'Nautical miles',
-                   title="Visibility",
-                   name="visibility_plot")
-
-    # (nautical miles)
-    p_viz.line(x='time', y='visibility', legend_label = "Visibility", source=source)
-
-    p_viz.legend.click_policy = "hide"
-
-    return p_viz
 
 def make_pressure_plot(source, buoy_input, checkbox_group):
     hover_tool = HoverTool(
@@ -134,19 +81,123 @@ def make_pressure_plot(source, buoy_input, checkbox_group):
             formatters={'@time':'datetime'},
             mode='vline')
 
-    p_pressure = figure(plot_width = 500, plot_height = 300,
+    p_pressure = figure(plot_width = 600, plot_height = 400,
                x_axis_label = 'Time',
                x_axis_type = "datetime",
                y_axis_label = 'hPa',
                title="Air Pressure",
-               name="pressure_plot")
+               name="pressure_plot",
+               sizing_mode="scale_width")
 
     # (hPa)
-    p_pressure.line(x='time', y='air_pressure', legend_label = "Air Pressure", source=source)
+    p_pressure.line(x='time', y='air_pressure', legend_label = "Air Pressure", source=source, color=palette[3])
     p_pressure.add_tools(hover_tool)
     p_pressure.legend.click_policy = "hide"
 
     return p_pressure
+
+def make_dir_plot(source, buoy_input, checkbox_group):
+    mean_wave_hover = HoverTool(
+        tooltips = [
+            ('Mean Wave Direction', '@mean_wave_dir{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['mean_wave_hover'],
+            mode='vline')
+
+    wind_dir_hover = HoverTool(
+        tooltips = [
+            ('Wind Direction', '@wind_dir{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['wind_dir_hover'],
+            mode='vline')
+
+    p_dir = figure(plot_width = 600, plot_height = 300,
+                   x_axis_label = 'Time',
+                   x_axis_type = "datetime",
+                   y_axis_label = 'Degrees from true north (degT)',
+                   title="Mean wave direction & wind direction",
+                   name="direction_plot",
+                   sizing_mode="scale_width")
+
+    # (degrees from true north (degT))
+    mean_wave = p_dir.line(x='time', y='mean_wave_dir', legend_label = "Mean Wave Direction", source=source, color=palette[2], name='mean_wave_hover')
+    p.add_tools(mean_wave_hover)
+    wind_dir = p_dir.line(x='time', y='wind_dir', legend_label = "Wind Direction", source=source, color=palette[3], name='wind_dir_hover')
+    p.add_tools(wind_dir_hover)
+
+    p_dir.legend.click_policy = "hide"
+
+    return p_dir
+
+def make_speed_plot(source, buoy_input, checkbox_group):
+    p_speed = figure(plot_width = 600, plot_height = 400,
+                     x_axis_label = 'Time',
+                     x_axis_type = "datetime",
+                     y_axis_label = 'm/s',
+                     title="Wind Speed & Gust",
+                     name="speed_plot",
+                     sizing_mode="scale_width")
+
+    # wind speed and gust (m/s)
+    p_speed.scatter(x='time', y='gust', legend_label = "Gust", source=source, alpha=0.3, color=palette[4])
+    p_speed.scatter(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, alpha=0.3, color=palette[5])
+
+    p_speed.legend.click_policy = "hide"
+
+    return p_speed
+
+def make_tide_plot(source, buoy_input, checkbox_group):
+    p_tide = figure(plot_width = 600, plot_height = 400,
+                    x_axis_label = 'Time',
+                    x_axis_type = "datetime",
+                    y_axis_label = 'meters',
+                    title="Wave Height & Tide",
+                    name="tide_plot",
+                    sizing_mode="scale_width")
+
+    # (meters)
+    p_tide.scatter(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
+    p_tide.scatter(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
+
+    p_tide.legend.click_policy = "hide"
+
+    return p_tide
+
+def make_wvpd_plot(source, buoy_input, checkbox_group):
+    p_wvpd = figure(plot_width = 600, plot_height = 400,
+               x_axis_label = 'Time',
+               x_axis_type = "datetime",
+               y_axis_label = 'seconds',
+               title="Dominant and Average Wave Period",
+               name="wave_period_plot",
+               sizing_mode="scale_both")
+
+    # wave period plot (seconds)
+    p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source, color=palette[0])
+    p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source, color=palette[1])
+
+    p_wvpd.legend.click_policy = "hide"
+
+    return p_wvpd
+
+def make_viz_plot(source, buoy_input, checkbox_group):
+    p_viz = figure(plot_width = 600, plot_height = 400,
+                   x_axis_label = 'Time',
+                   x_axis_type = "datetime",
+                   y_axis_label = 'Nautical miles',
+                   title="Visibility",
+                   name="visibility_plot",
+                   sizing_mode="scale_width")
+
+    # (nautical miles)
+    p_viz.line(x='time', y='visibility', legend_label = "Visibility", source=source)
+
+    p_viz.legend.click_policy = "hide"
+
+    return p_viz
+
 # ------------------------------------------------------------------------------
 # Function: update plot based on selections
 # ------------------------------------------------------------------------------
