@@ -3,40 +3,19 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css">
     <style>
-        @import url('https://fonts.googleapis.com/css?family=Montserrat|Quicksand');
-        body {
-            font-family: "Quicksand";
-        }
-        .bk-root {
-            font-family: "Quicksand" !important;
-        }
-        .plot-tooltip {
-            margin: 10px;
-        }
-        .slick-header-columns, .slick-header-column {
-            background-color: #DDDDDD !important;
-            background-image: none !important;
-        }
-        .row {
-          display: flex;
-        }
-        .controls-style {
-          padding: 16px;
-          border: 1px solid;
-          border-color: #c7ccdb;
-          border-radius: 4px;
-          background-color: #e1e5ee;
-        }
+        {% include 'main.css' %}
     </style>
 
 {% endblock %}
 {% block contents%}
     <div class="container">
         <div class="row">
-            <div class="col-3">
+            <div class="col-12">
                 <h1>Buoy Explore Tool</h1>
             </div>
-            <div class="col-9">
+        </div>
+        <div class="row">
+            <div class="col-12">
                 <h4>
                     Realtime feed of buoys maintained by the National Buoy Data Center
                 </h4>
@@ -46,45 +25,65 @@
                 </p>
             </div>
         </div>
+
         <div class="row controls-style">
-          <div class="col-4">
+          <div class="col4">
               {{ embed(roots.buoy_input) }}
           </div>
-          <div class="col-4">
+          <div class="col4">
               {{ embed(roots.start_date) }}
           </div>
-          <div class="col-4">
+          <div class="col4">
               {{ embed(roots.end_date) }}
           </div>
         </div>
-          <div class="row">
-            <div class="col-6">
-                {{ embed(roots.temperature_plot) }}
+
+        <div class="tabs">
+          <input type="radio" class="tabs-radio" name="tabs" id="charts-tab" checked>
+          <label for="charts-tab" class="tab-label">Charts</label>
+          <div class="tab-content">
+            <div class="row">
+              <div class="col-6">
+                  {{ embed(roots.temperature_plot) }}
+              </div>
+              <div class="col-6">
+                  {{ embed(roots.pressure_plot) }}
+              </div>
             </div>
-            <div class="col-6">
-                {{ embed(roots.pressure_plot) }}
+            <div class="row">
+              <div class="col-6">
+                  {{ embed(roots.direction_plot) }}
+              </div>
+              <div class="col-6">
+                  {{ embed(roots.speed_plot) }}
+              </div>
             </div>
+            <div class="row">
+              <div class="col-6">
+                  {{ embed(roots.tide_plot) }}
+              </div>
+              <div class="col-6">
+                  {{ embed(roots.wave_period_plot) }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-12">
+                  {{ embed(roots.data_table) }}
+              </div>
+            </div>
+
           </div>
-        <div class="row">
-            <div class="col-6">
-                {{ embed(roots.direction_plot) }}
-            </div>
-            <div class="col-6">
-                {{ embed(roots.speed_plot) }}
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-6">
-                {{ embed(roots.tide_plot) }}
-            </div>
-            <div class="col-6">
-                {{ embed(roots.wave_period_plot) }}
-            </div>
-        </div>
-        <div class="row">
-          <div class="col-12">
-              {{ embed(roots.data_table) }}
+          <input type="radio" class="tabs-radio" name="tabs" id="about-tab">
+          <label for="about-tab" class="tab-label">Buoy Information</label>
+          <div class="tab-content">
+            <h4>Buoy ID Number</h4>
+            <h6>{{buoy_input}}</h6>
+            <p>Active buoy list</p>
+            {% for item in buoys %}
+              {{ item }}
+            {% endfor %}
           </div>
-      </div>
+        </div>
     </div>
+
 {% endblock %}

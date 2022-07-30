@@ -4,17 +4,37 @@ import pandas as pd
 import itertools
 
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource, CDSView, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput, LabelSet, HoverTool, NumeralTickFormatter
+from bokeh.models import ColumnDataSource, CDSView, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput, LabelSet, HoverTool, NumeralTickFormatter, Select
 from bokeh.models.widgets import CheckboxGroup, NumberFormatter
 from bokeh.io import show, curdoc
 from bokeh.layouts import column, row, grid, WidgetBox
 from datetime import date
 from bokeh.palettes import YlGnBu9 as palette
 
+from bs4 import BeautifulSoup
+import requests
+
+# create empty list
+buoys = []
+
 bokeh_doc = curdoc()
 
 # ------------------------------------------------------------------------------
-# Function: load dataset
+# Function: Find list of active buoys
+# ------------------------------------------------------------------------------
+def active_buoys(buoys):
+    url = "https://www.ndbc.noaa.gov/activestations.xml"
+    xml = requests.get(url)
+    doc = BeautifulSoup(xml.content, 'xml')
+
+    for tag in doc.find_all("station", pgm="NDBC Meteorological/Ocean"):
+        buoys.append(tag['id'])
+
+    print(type(buoys))
+    return buoys
+
+# ------------------------------------------------------------------------------
+# Function: Load dataset from NDBC Thredds server
 # ------------------------------------------------------------------------------
 def find_dataset(buoy_input, start_date, end_date):
     data_url = 'https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/' + buoy_input + '/' + buoy_input + '.ncml'
@@ -28,7 +48,12 @@ def find_dataset(buoy_input, start_date, end_date):
 
     return source
 
-def make_temp_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create temperature plot
+# Sources: Air Temperature, Sea Surface Temperature, Dewpoint Temperature
+# Units: Degrees Celsius
+# ------------------------------------------------------------------------------
+def make_temp_plot(source, buoy_input):
     air_hover = HoverTool(
         tooltips = [
             ('Air Temp', '@air_temperature{(00.00)}'),
@@ -61,7 +86,6 @@ def make_temp_plot(source, buoy_input, checkbox_group):
                name="temperature_plot",
                sizing_mode="scale_width")
 
-    # temperature plot (degrees Celsius)
     air = p.line(x='time', y='air_temperature', legend_label = "Air Temperature", source=source, color=palette[1], name='air_hover')
     p.add_tools(air_hover)
     sea = p.line(x='time', y='sea_surface_temperature', legend_label = "Sea Surface Temperature", source=source, color=palette[2], name='sea_hover')
@@ -73,7 +97,12 @@ def make_temp_plot(source, buoy_input, checkbox_group):
 
     return p
 
-def make_pressure_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create pressure plot
+# Sources: Air Pressure
+# Units: hPa
+# ------------------------------------------------------------------------------
+def make_pressure_plot(source, buoy_input):
     hover_tool = HoverTool(
         tooltips = [
             ('Air Pressure', '@air_pressure{(0000.00)}'),
@@ -89,14 +118,18 @@ def make_pressure_plot(source, buoy_input, checkbox_group):
                name="pressure_plot",
                sizing_mode="scale_width")
 
-    # (hPa)
     p_pressure.line(x='time', y='air_pressure', legend_label = "Air Pressure", source=source, color=palette[3])
     p_pressure.add_tools(hover_tool)
     p_pressure.legend.click_policy = "hide"
 
     return p_pressure
 
-def make_dir_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create direction plot
+# Sources: Mean Wave Direction, Wind Direction
+# Units: Degrees from true north
+# ------------------------------------------------------------------------------
+def make_dir_plot(source, buoy_input):
     mean_wave_hover = HoverTool(
         tooltips = [
             ('Mean Wave Direction', '@mean_wave_dir{(00.00)}'),
@@ -113,7 +146,7 @@ def make_dir_plot(source, buoy_input, checkbox_group):
             names=['wind_dir_hover'],
             mode='vline')
 
-    p_dir = figure(plot_width = 600, plot_height = 300,
+    p_dir = figure(plot_width = 600, plot_height = 400,
                    x_axis_label = 'Time',
                    x_axis_type = "datetime",
                    y_axis_label = 'Degrees from true north (degT)',
@@ -121,7 +154,6 @@ def make_dir_plot(source, buoy_input, checkbox_group):
                    name="direction_plot",
                    sizing_mode="scale_width")
 
-    # (degrees from true north (degT))
     mean_wave = p_dir.line(x='time', y='mean_wave_dir', legend_label = "Mean Wave Direction", source=source, color=palette[2], name='mean_wave_hover')
     p.add_tools(mean_wave_hover)
     wind_dir = p_dir.line(x='time', y='wind_dir', legend_label = "Wind Direction", source=source, color=palette[3], name='wind_dir_hover')
@@ -131,7 +163,12 @@ def make_dir_plot(source, buoy_input, checkbox_group):
 
     return p_dir
 
-def make_speed_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create speed plot
+# Sources: Wind Speed, Gust
+# Units: Meters per second (m/s)
+# ------------------------------------------------------------------------------
+def make_speed_plot(source, buoy_input):
     p_speed = figure(plot_width = 600, plot_height = 400,
                      x_axis_label = 'Time',
                      x_axis_type = "datetime",
@@ -140,15 +177,19 @@ def make_speed_plot(source, buoy_input, checkbox_group):
                      name="speed_plot",
                      sizing_mode="scale_width")
 
-    # wind speed and gust (m/s)
-    p_speed.scatter(x='time', y='gust', legend_label = "Gust", source=source, alpha=0.3, color=palette[4])
-    p_speed.scatter(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, alpha=0.3, color=palette[5])
+    p_speed.line(x='time', y='gust', legend_label = "Gust", source=source, color=palette[4])
+    p_speed.line(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, color=palette[5])
 
     p_speed.legend.click_policy = "hide"
 
     return p_speed
 
-def make_tide_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create Tide plot
+# Sources: Wave Height, Water Level
+# Units: Meters
+# ------------------------------------------------------------------------------
+def make_tide_plot(source, buoy_input):
     p_tide = figure(plot_width = 600, plot_height = 400,
                     x_axis_label = 'Time',
                     x_axis_type = "datetime",
@@ -157,15 +198,19 @@ def make_tide_plot(source, buoy_input, checkbox_group):
                     name="tide_plot",
                     sizing_mode="scale_width")
 
-    # (meters)
-    p_tide.scatter(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
-    p_tide.scatter(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
+    p_tide.line(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
+    p_tide.line(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
 
     p_tide.legend.click_policy = "hide"
 
     return p_tide
 
-def make_wvpd_plot(source, buoy_input, checkbox_group):
+# ------------------------------------------------------------------------------
+# Function: Create wave period plot
+# Sources: Dominant and Average Wave Period
+# Units: Seconds
+# ------------------------------------------------------------------------------
+def make_wvpd_plot(source, buoy_input):
     p_wvpd = figure(plot_width = 600, plot_height = 400,
                x_axis_label = 'Time',
                x_axis_type = "datetime",
@@ -174,7 +219,6 @@ def make_wvpd_plot(source, buoy_input, checkbox_group):
                name="wave_period_plot",
                sizing_mode="scale_both")
 
-    # wave period plot (seconds)
     p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source, color=palette[0])
     p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source, color=palette[1])
 
@@ -182,29 +226,11 @@ def make_wvpd_plot(source, buoy_input, checkbox_group):
 
     return p_wvpd
 
-def make_viz_plot(source, buoy_input, checkbox_group):
-    p_viz = figure(plot_width = 600, plot_height = 400,
-                   x_axis_label = 'Time',
-                   x_axis_type = "datetime",
-                   y_axis_label = 'Nautical miles',
-                   title="Visibility",
-                   name="visibility_plot",
-                   sizing_mode="scale_width")
-
-    # (nautical miles)
-    p_viz.line(x='time', y='visibility', legend_label = "Visibility", source=source)
-
-    p_viz.legend.click_policy = "hide"
-
-    return p_viz
-
 # ------------------------------------------------------------------------------
-# Function: update plot based on selections
+# Function: Update plots based on input modifications
+# Inputs: Buoy ID Number, Date Range (start date and end date)
 # ------------------------------------------------------------------------------
 def update_plot(attr, old, new):
-     # update checkbox group
-     checkbox_group_updated = [checkbox_group.labels[i] for i in checkbox_group.active]
-     print(checkbox_group_updated)
 
      # update start date
      start_date_updated = start_date_picker.value
@@ -218,6 +244,9 @@ def update_plot(attr, old, new):
      buoy_input_updated = buoy_input.value
      print("buoy ID:" + buoy_input_updated)
 
+     dropdown_updated = dropdown.value
+     print("dropdown value: " + dropdown_updated)
+
      # find new source data
      source_updated = find_dataset(buoy_input = buoy_input_updated,
                                    start_date = start_date_updated,
@@ -225,15 +254,15 @@ def update_plot(attr, old, new):
 
      # update source data
      source.data = dict(source_updated.data)
-# ------------------------------------------------------------------------------
-# Widget creation and customization
-# ------------------------------------------------------------------------------
 
 # ------------------------------------------------------------------------------
-# Widget: Text Input
+# Widget: Text Input for Buoy Number
 # ------------------------------------------------------------------------------
 buoy_input = TextInput(value='44066', title="Buoy ID Number", name="buoy_input")
 buoy_input.on_change("value", update_plot)
+
+#dropdown = Select(title="Select a Buoy", value="Select", options=buoys, name="buoy_input")
+#dropdown.on_change("value", update_plot)
 
 # ------------------------------------------------------------------------------
 # Widget: Data Table
@@ -253,12 +282,11 @@ columns = [
     TableColumn(field="air_temperature", title="Air Temperature (°C)", formatter=formatter),
     TableColumn(field="sea_surface_temperature", title="Sea Surface Temperature (°C)", formatter=formatter),
     TableColumn(field="dewpt_temperature", title="Dew Point Temperature (°C)", formatter=formatter),
-    TableColumn(field="visibility", title="Visibility (nmi)", formatter=formatter),
     TableColumn(field="water_level", title="Water Level (ft)", formatter=formatter),
 ]
 
 # ------------------------------------------------------------------------------
-# Widget: Date Picker
+# Widget: Date Pickers
 # ------------------------------------------------------------------------------
 start_date_picker = DatePicker(title='Start date', value='2021-07-24', name="start_date")
 start_date_picker.on_change("value", update_plot)
@@ -267,62 +295,30 @@ end_date_picker = DatePicker(title='End date', value=date.today(), name="end_dat
 end_date_picker.on_change("value", update_plot)
 
 # ------------------------------------------------------------------------------
-# Widget: Checkbox Group
+# Create Charts
 # ------------------------------------------------------------------------------
-#labels = ["wind_dir", "Wind Speed", "Gust", "Wave Height",
-#          "Dominant Wave Period", "Average Wave Period", "Mean Wave Direction",
-#          "Air Pressure", "air_temperature", "Sea Surface Temperature",
-#          "Dew Point Temperature", "Visibility", "Water Level"]
-labels = ["wind_dir", "wind_spd", "gust", "wave_height",
-          "dominant_wpd", "average_wpd", "mean_wave_dir",
-          "air_pressure", "air_temperature", "sea_surface_temperature",
-          "dewpt_temperature", "visibility", "water_level"]
-checkbox_group = CheckboxGroup(labels=labels, active=[9])
-checkbox_group.on_change('active', update_plot)
-
-# ------------------------------------------------------------------------------
-# Plot: generate line chart
-# ------------------------------------------------------------------------------
-initial_checkbox_group = [checkbox_group.labels[i] for i in checkbox_group.active]
+#initial_checkbox_group = [checkbox_group.labels[i] for i in checkbox_group.active]
 
 source = find_dataset(buoy_input = buoy_input.value,
                       start_date = start_date_picker.value,
                       end_date = end_date_picker.value)
 
-p = make_temp_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-p_wvpd = make_wvpd_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-p_dir = make_dir_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-p_tide = make_tide_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-p_speed = make_speed_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-#p_viz = make_viz_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
-p_pressure = make_pressure_plot(source, buoy_input = buoy_input.value, checkbox_group=initial_checkbox_group)
+p = make_temp_plot(source, buoy_input = buoy_input.value)
+p_wvpd = make_wvpd_plot(source, buoy_input = buoy_input.value)
+p_dir = make_dir_plot(source, buoy_input = buoy_input.value)
+p_tide = make_tide_plot(source, buoy_input = buoy_input.value)
+p_speed = make_speed_plot(source, buoy_input = buoy_input.value)
+p_pressure = make_pressure_plot(source, buoy_input = buoy_input.value)
 
-
-#p.sizing_mode = 'scale_width'
-#p_wvpd.sizing_mode = 'scale_width'
-#p_dir.sizing_mode = 'scale_width'
-#p_tide.sizing_mode = 'scale_width'
-#p_speed.sizing_mode = 'scale_width'
-#p_pressure.sizing_mode = 'scale_width'
-
-data_table = DataTable(source=source, columns=columns, width=1400, height=280, name="data_table")
-#data_table.sizing_mode = 'scale_width'
+data_table = DataTable(source=source, columns=columns, height=280, name="data_table", sizing_mode="stretch_width")
 
 # put controls in a single element
 controls = row(buoy_input, start_date_picker, end_date_picker)
-#controls.sizing_mode = 'scale_width'
 
-# create a row layout
-#row1 = row(controls)
-#row2 = row(p, p_pressure, p_dir)
-#row3 = row(p_speed, p_tide, p_wvpd)
+buoys = active_buoys(buoys)
+bokeh_doc.template_variables["buoys"] = buoys
 
-layout = grid([
-        [controls],
-        [p, p_pressure, p_dir],
-        [p_speed, p_tide, p_wvpd],
-])
-#bokeh_doc.add_root(layout)
+# Send variables to index.html for display
 bokeh_doc.add_root(buoy_input)
 bokeh_doc.add_root(start_date_picker)
 bokeh_doc.add_root(end_date_picker)
@@ -333,9 +329,6 @@ bokeh_doc.add_root(p_speed)
 bokeh_doc.add_root(p_tide)
 bokeh_doc.add_root(p_wvpd)
 bokeh_doc.add_root(data_table)
-# show all widgets and graphs on the page
-#bokeh_doc.add_root(row1)
-#bokeh_doc.add_root(row2)
-#bokeh_doc.add_root(row3)
-#bokeh_doc.add_root(data_table)
+
+# Add page title
 bokeh_doc.title = "OCG592 | Buoy Explore Tool"
