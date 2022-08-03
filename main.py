@@ -155,9 +155,9 @@ def make_dir_plot(source, buoy_input):
                    sizing_mode="scale_width")
 
     mean_wave = p_dir.line(x='time', y='mean_wave_dir', legend_label = "Mean Wave Direction", source=source, color=palette[2], name='mean_wave_hover')
-    p.add_tools(mean_wave_hover)
+    p_dir.add_tools(mean_wave_hover)
     wind_dir = p_dir.line(x='time', y='wind_dir', legend_label = "Wind Direction", source=source, color=palette[3], name='wind_dir_hover')
-    p.add_tools(wind_dir_hover)
+    p_dir.add_tools(wind_dir_hover)
 
     p_dir.legend.click_policy = "hide"
 
