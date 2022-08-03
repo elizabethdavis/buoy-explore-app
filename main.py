@@ -244,8 +244,8 @@ def update_plot(attr, old, new):
      buoy_input_updated = buoy_input.value
      print("buoy ID:" + buoy_input_updated)
 
-     dropdown_updated = dropdown.value
-     print("dropdown value: " + dropdown_updated)
+    # dropdown_updated = dropdown.value
+     #print("dropdown value: " + dropdown_updated)
 
      # find new source data
      source_updated = find_dataset(buoy_input = buoy_input_updated,
