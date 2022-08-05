@@ -19,6 +19,8 @@ buoys = []
 
 bokeh_doc = curdoc()
 
+tools = "pan, box_zoom, save, reset"
+
 # ------------------------------------------------------------------------------
 # Function: Find list of active buoys
 # ------------------------------------------------------------------------------
@@ -84,7 +86,8 @@ def make_temp_plot(source, buoy_input):
                y_axis_label = 'degrees C',
                title="Temperature",
                name="temperature_plot",
-               sizing_mode="scale_width")
+               sizing_mode="scale_width",
+               tools=tools)
 
     air = p.line(x='time', y='air_temperature', legend_label = "Air Temperature", source=source, color=palette[1], name='air_hover')
     p.add_tools(air_hover)
@@ -93,6 +96,7 @@ def make_temp_plot(source, buoy_input):
     dewpt = p.line(x='time', y='dewpt_temperature', legend_label = "Dew Point Temperature", source=source, color=palette[3], name='dewpt_hover')
     p.add_tools(dewpt_hover)
 
+    p.toolbar.active_drag = None
     p.legend.click_policy = "hide"
 
     return p
@@ -116,10 +120,13 @@ def make_pressure_plot(source, buoy_input):
                y_axis_label = 'hPa',
                title="Air Pressure",
                name="pressure_plot",
-               sizing_mode="scale_width")
+               sizing_mode="scale_width",
+               tools=tools)
 
     p_pressure.line(x='time', y='air_pressure', legend_label = "Air Pressure", source=source, color=palette[3])
     p_pressure.add_tools(hover_tool)
+
+    p_pressure.toolbar.active_drag = None
     p_pressure.legend.click_policy = "hide"
 
     return p_pressure
@@ -152,13 +159,15 @@ def make_dir_plot(source, buoy_input):
                    y_axis_label = 'Degrees from true north (degT)',
                    title="Mean wave direction & wind direction",
                    name="direction_plot",
-                   sizing_mode="scale_width")
+                   sizing_mode="scale_width",
+                   tools=tools)
 
     mean_wave = p_dir.line(x='time', y='mean_wave_dir', legend_label = "Mean Wave Direction", source=source, color=palette[2], name='mean_wave_hover')
     p_dir.add_tools(mean_wave_hover)
     wind_dir = p_dir.line(x='time', y='wind_dir', legend_label = "Wind Direction", source=source, color=palette[3], name='wind_dir_hover')
     p_dir.add_tools(wind_dir_hover)
 
+    p_dir.toolbar.active_drag = None
     p_dir.legend.click_policy = "hide"
 
     return p_dir
@@ -169,17 +178,37 @@ def make_dir_plot(source, buoy_input):
 # Units: Meters per second (m/s)
 # ------------------------------------------------------------------------------
 def make_speed_plot(source, buoy_input):
+    gust_hover = HoverTool(
+        tooltips = [
+            ('Gust', '@gust{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['gust_hover'],
+            mode='vline')
+
+    wind_spd_hover = HoverTool(
+        tooltips = [
+            ('Wind Speed', '@wind_spd{(00.00)}'),
+            ('Date', '@time{%F}')],
+            formatters={'@time':'datetime'},
+            names=['wind_spd_hover'],
+            mode='vline')
+
     p_speed = figure(plot_width = 600, plot_height = 400,
                      x_axis_label = 'Time',
                      x_axis_type = "datetime",
                      y_axis_label = 'm/s',
                      title="Wind Speed & Gust",
                      name="speed_plot",
-                     sizing_mode="scale_width")
+                     sizing_mode="scale_width",
+                     tools=tools)
 
-    p_speed.line(x='time', y='gust', legend_label = "Gust", source=source, color=palette[4])
-    p_speed.line(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, color=palette[5])
+    gust = p_speed.line(x='time', y='gust', legend_label = "Gust", source=source, color=palette[4], name='gust_hover')
+    p_speed.add_tools(gust_hover)
+    wind_spd = p_speed.line(x='time', y='wind_spd', legend_label = "Wind Speed", source=source, color=palette[5], name='wind_spd_hover')
+    p_speed.add_tools(wind_spd_hover)
 
+    p_speed.toolbar.active_drag = None
     p_speed.legend.click_policy = "hide"
 
     return p_speed
@@ -189,42 +218,46 @@ def make_speed_plot(source, buoy_input):
 # Sources: Wave Height, Water Level
 # Units: Meters
 # ------------------------------------------------------------------------------
-def make_tide_plot(source, buoy_input):
-    p_tide = figure(plot_width = 600, plot_height = 400,
-                    x_axis_label = 'Time',
-                    x_axis_type = "datetime",
-                    y_axis_label = 'meters',
-                    title="Wave Height & Tide",
-                    name="tide_plot",
-                    sizing_mode="scale_width")
+#def make_tide_plot(source, buoy_input):
+#    p_tide = figure(plot_width = 600, plot_height = 400,
+#                    x_axis_label = 'Time',
+#                    x_axis_type = "datetime",
+#                    y_axis_label = 'meters',
+#                    title="Wave Height & Tide",
+#                    name="tide_plot",
+#                    sizing_mode="scale_width",
+#                    tools=tools)
 
-    p_tide.line(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
-    p_tide.line(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
+#    p_tide.scatter(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
+#    p_tide.scatter(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
 
-    p_tide.legend.click_policy = "hide"
+#    p_tide.toolbar.active_drag = None
+#    p_tide.legend.click_policy = "hide"
 
-    return p_tide
+#    return p_tide
 
 # ------------------------------------------------------------------------------
 # Function: Create wave period plot
 # Sources: Dominant and Average Wave Period
 # Units: Seconds
 # ------------------------------------------------------------------------------
-def make_wvpd_plot(source, buoy_input):
-    p_wvpd = figure(plot_width = 600, plot_height = 400,
-               x_axis_label = 'Time',
-               x_axis_type = "datetime",
-               y_axis_label = 'seconds',
-               title="Dominant and Average Wave Period",
-               name="wave_period_plot",
-               sizing_mode="scale_both")
+#def make_wvpd_plot(source, buoy_input):
+#    p_wvpd = figure(plot_width = 600, plot_height = 400,
+#               x_axis_label = 'Time',
+#               x_axis_type = "datetime",
+#               y_axis_label = 'seconds',
+#               title="Dominant and Average Wave Period",
+#               name="wave_period_plot",
+#               sizing_mode="scale_both",
+#               tools=tools)
 
-    p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source, color=palette[0])
-    p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source, color=palette[1])
+#    p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source, color=palette[0])
+#    p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source, color=palette[1])
 
-    p_wvpd.legend.click_policy = "hide"
+#    p_wvpd.toolbar.active_drag = None
+#    p_wvpd.legend.click_policy = "hide"
 
-    return p_wvpd
+#    return p_wvpd
 
 # ------------------------------------------------------------------------------
 # Function: Update plots based on input modifications
@@ -271,18 +304,14 @@ formatter = NumberFormatter(format='0.000')
 
 columns = [
     TableColumn(field="time", title="Time", formatter=DateFormatter()),
-    TableColumn(field="wind_dir", title="Wind Direction (°C)", formatter=formatter),
-    TableColumn(field="wind_spd", title="Wind Speed (m/s)", formatter=formatter),
-    TableColumn(field="gust", title="Gust (m/s)", formatter=formatter),
-    TableColumn(field="wave_height", title="Wave Height (m)", formatter=formatter),
-    TableColumn(field="dominant_wpd", title="Dominant Wave Period (seconds)", formatter=formatter),
-    TableColumn(field="average_wpd", title="Average Wave Period (seconds)", formatter=formatter),
-    TableColumn(field="mean_wave_dir", title="Mean Wave Direction (degT)", formatter=formatter),
-    TableColumn(field="air_pressure", title="Air Pressure (hPa)", formatter=formatter),
     TableColumn(field="air_temperature", title="Air Temperature (°C)", formatter=formatter),
     TableColumn(field="sea_surface_temperature", title="Sea Surface Temperature (°C)", formatter=formatter),
     TableColumn(field="dewpt_temperature", title="Dew Point Temperature (°C)", formatter=formatter),
-    TableColumn(field="water_level", title="Water Level (ft)", formatter=formatter),
+    TableColumn(field="air_pressure", title="Air Pressure (hPa)", formatter=formatter),
+    TableColumn(field="mean_wave_dir", title="Mean Wave Direction (degT)", formatter=formatter),
+    TableColumn(field="wind_dir", title="Wind Direction (°C)", formatter=formatter),
+    TableColumn(field="wind_spd", title="Wind Speed (m/s)", formatter=formatter),
+    TableColumn(field="gust", title="Gust (m/s)", formatter=formatter),
 ]
 
 # ------------------------------------------------------------------------------
@@ -304,9 +333,9 @@ source = find_dataset(buoy_input = buoy_input.value,
                       end_date = end_date_picker.value)
 
 p = make_temp_plot(source, buoy_input = buoy_input.value)
-p_wvpd = make_wvpd_plot(source, buoy_input = buoy_input.value)
+#p_wvpd = make_wvpd_plot(source, buoy_input = buoy_input.value)
 p_dir = make_dir_plot(source, buoy_input = buoy_input.value)
-p_tide = make_tide_plot(source, buoy_input = buoy_input.value)
+#p_tide = make_tide_plot(source, buoy_input = buoy_input.value)
 p_speed = make_speed_plot(source, buoy_input = buoy_input.value)
 p_pressure = make_pressure_plot(source, buoy_input = buoy_input.value)
 
@@ -326,8 +355,8 @@ bokeh_doc.add_root(p)
 bokeh_doc.add_root(p_pressure)
 bokeh_doc.add_root(p_dir)
 bokeh_doc.add_root(p_speed)
-bokeh_doc.add_root(p_tide)
-bokeh_doc.add_root(p_wvpd)
+#bokeh_doc.add_root(p_tide)
+#bokeh_doc.add_root(p_wvpd)
 bokeh_doc.add_root(data_table)
 
 # Add page title
