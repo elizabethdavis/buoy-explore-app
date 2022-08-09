@@ -18,18 +18,22 @@ Explore buoy data from the National Buoy Data Center (NBDC).
 ### Key Features  
 #### Charts  
 
-*Hover tool tips*  
-All charts have a tooltip hover by default. To view exact data simply hover over the chart.
-
 *Toggle chart data with legend*  
 All chart data can be toggled on/off with the legend on the top right of each plot. Simply click on/off to hide or display data.
+![toggle chart legend](buoy-app/img/show-hide-charts.gif)
+
+*Hover tool tips*  
+All charts have a tooltip hover by default. To view exact data simply hover over the chart.
+![chart gif with hover tooltips](buoy-app/img/hover-tools.gif)
 
 #### Chart Tools  
 *Pan Tool*  
 The pan tool allows you to pan the plot by left-dragging a mouse or dragging a finger across the plot region.
+![chart with pan tool dragging view](buoy-app/img/pan-tool.gif)
 
 *Box Zoom Tool*  
 Click on the chart tool with the magnifying glass in a square. Once active, the box zoom tool allows you to define a rectangular region to zoom the plot bounds to by left-dragging a mouse, or dragging a finger across the plot area.
+![chart gif with select to zoom tool](buoy-app/img/zoom-tool.gif)
 
 *Save Tool*  
 The save tool pops up a modal dialog that allows you to save a PNG image of the plot.  
