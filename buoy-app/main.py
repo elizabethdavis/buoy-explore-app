@@ -30,7 +30,7 @@ def active_buoys(buoys):
     doc = BeautifulSoup(xml.content, 'xml')
 
     for tag in doc.find_all("station", pgm="NDBC Meteorological/Ocean"):
-        buoys.append(tag['id'])
+        buoys.append(tag['id'] + ' | ' + tag['name'])
 
     print(type(buoys))
     return buoys

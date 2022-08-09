@@ -70,10 +70,31 @@
           <div class="tab-content">
             <h4>Buoy ID Number</h4>
             <h6>{{buoy_input}}</h6>
-            <p>Active buoy list</p>
-            {% for item in buoys %}
-              {{ item }}<br>
-            {% endfor %}
+
+            <button class="accordion">Active Buoy List</button>
+            <div class="panel">
+              <p>Active buoy list</p>
+              {% for item in buoys %}
+                {{ item }}<br>
+              {% endfor %}
+            </div>
+            <script>
+                var acc = document.getElementsByClassName("accordion");
+                var i;
+
+                for (i = 0; i < acc.length; i++) {
+                  acc[i].addEventListener("click", function() {
+                    this.classList.toggle("active");
+                    var panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                      panel.style.maxHeight = null;
+                    } else {
+                      panel.style.maxHeight = panel.scrollHeight + "px";
+                    }
+                  });
+                }
+            </script>
+
           </div>
         </div>
     </div>
