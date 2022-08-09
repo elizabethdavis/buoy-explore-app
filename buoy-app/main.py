@@ -32,7 +32,6 @@ def active_buoys(buoys):
     for tag in doc.find_all("station", pgm="NDBC Meteorological/Ocean"):
         buoys.append(tag['id'] + ' | ' + tag['name'])
 
-    print(type(buoys))
     return buoys
 
 # ------------------------------------------------------------------------------
@@ -214,52 +213,6 @@ def make_speed_plot(source, buoy_input):
     return p_speed
 
 # ------------------------------------------------------------------------------
-# Function: Create Tide plot
-# Sources: Wave Height, Water Level
-# Units: Meters
-# ------------------------------------------------------------------------------
-#def make_tide_plot(source, buoy_input):
-#    p_tide = figure(plot_width = 600, plot_height = 400,
-#                    x_axis_label = 'Time',
-#                    x_axis_type = "datetime",
-#                    y_axis_label = 'meters',
-#                    title="Wave Height & Tide",
-#                    name="tide_plot",
-#                    sizing_mode="scale_width",
-#                    tools=tools)
-
-#    p_tide.scatter(x='time', y='wave_height', legend_label = "Wave Height", source=source, color=palette[5])
-#    p_tide.scatter(x='time', y='water_level', legend_label = "Water Level", source=source, color=palette[6])
-
-#    p_tide.toolbar.active_drag = None
-#    p_tide.legend.click_policy = "hide"
-
-#    return p_tide
-
-# ------------------------------------------------------------------------------
-# Function: Create wave period plot
-# Sources: Dominant and Average Wave Period
-# Units: Seconds
-# ------------------------------------------------------------------------------
-#def make_wvpd_plot(source, buoy_input):
-#    p_wvpd = figure(plot_width = 600, plot_height = 400,
-#               x_axis_label = 'Time',
-#               x_axis_type = "datetime",
-#               y_axis_label = 'seconds',
-#               title="Dominant and Average Wave Period",
-#               name="wave_period_plot",
-#               sizing_mode="scale_both",
-#               tools=tools)
-
-#    p_wvpd.line(x='time', y='average_wpd', legend_label = "Average Wave Period", source=source, color=palette[0])
-#    p_wvpd.line(x='time', y='dominant_wpd', legend_label = "Dominant Wave Period", source=source, color=palette[1])
-
-#    p_wvpd.toolbar.active_drag = None
-#    p_wvpd.legend.click_policy = "hide"
-
-#    return p_wvpd
-
-# ------------------------------------------------------------------------------
 # Function: Update plots based on input modifications
 # Inputs: Buoy ID Number, Date Range (start date and end date)
 # ------------------------------------------------------------------------------
@@ -277,7 +230,7 @@ def update_plot(attr, old, new):
      buoy_input_updated = buoy_input.value
      print("buoy ID:" + buoy_input_updated)
 
-    # dropdown_updated = dropdown.value
+     #dropdown_updated = dropdown.value
      #print("dropdown value: " + dropdown_updated)
 
      # find new source data
@@ -326,16 +279,13 @@ end_date_picker.on_change("value", update_plot)
 # ------------------------------------------------------------------------------
 # Create Charts
 # ------------------------------------------------------------------------------
-#initial_checkbox_group = [checkbox_group.labels[i] for i in checkbox_group.active]
-
 source = find_dataset(buoy_input = buoy_input.value,
                       start_date = start_date_picker.value,
                       end_date = end_date_picker.value)
 
 p = make_temp_plot(source, buoy_input = buoy_input.value)
-#p_wvpd = make_wvpd_plot(source, buoy_input = buoy_input.value)
 p_dir = make_dir_plot(source, buoy_input = buoy_input.value)
-#p_tide = make_tide_plot(source, buoy_input = buoy_input.value)
+
 p_speed = make_speed_plot(source, buoy_input = buoy_input.value)
 p_pressure = make_pressure_plot(source, buoy_input = buoy_input.value)
 
@@ -346,6 +296,10 @@ controls = row(buoy_input, start_date_picker, end_date_picker)
 
 buoys = active_buoys(buoys)
 bokeh_doc.template_variables["buoys"] = buoys
+bokeh_doc.template_variables["buoy_input"] = buoy_input.value
+
+#dropdown = Select(title="Select a Buoy", value="Select", options=buoys, name="buoy_input")
+#dropdown.on_change("value", update_plot)
 
 # Send variables to index.html for display
 bokeh_doc.add_root(buoy_input)
@@ -355,8 +309,6 @@ bokeh_doc.add_root(p)
 bokeh_doc.add_root(p_pressure)
 bokeh_doc.add_root(p_dir)
 bokeh_doc.add_root(p_speed)
-#bokeh_doc.add_root(p_tide)
-#bokeh_doc.add_root(p_wvpd)
 bokeh_doc.add_root(data_table)
 
 # Add page title

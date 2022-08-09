@@ -66,14 +66,12 @@
 
           </div>
           <input type="radio" class="tabs-radio" name="tabs" id="about-tab">
-          <label for="about-tab" class="tab-label">Buoy Information</label>
+          <label for="about-tab" class="tab-label">Active Buoy List</label>
           <div class="tab-content">
-            <h4>Buoy ID Number</h4>
-            <h6>{{buoy_input}}</h6>
+          <br>
 
             <button class="accordion">Active Buoy List</button>
             <div class="panel">
-              <p>Active buoy list</p>
               {% for item in buoys %}
                 {{ item }}<br>
               {% endfor %}
