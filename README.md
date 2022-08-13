@@ -15,6 +15,7 @@ Explore buoy data from the National Buoy Data Center (NBDC).
 - Run the command `pip install -r requirements.txt` to install all required dependencies for the project
 - Run the command `bokeh serve --show buoy-app`
 - The command will open a new tab in your default browser and load the project
+- [Watch the video walkthrough!](https://github.com/elizabethdavis/buoy-explore-app)
 
 ### Key Features  
 #### Charts  
