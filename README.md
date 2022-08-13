@@ -12,6 +12,7 @@ Explore buoy data from the National Buoy Data Center (NBDC).
 **How to run the file**
 - Download the code and unzip the file
 - Open terminal and navigate to inside the folder buoy-explore-app
+- Run the command `pip install -r requirements.txt` to install all required dependencies for the project
 - Run the command `bokeh serve --show buoy-app`
 - The command will open a new tab in your default browser and load the project
 
