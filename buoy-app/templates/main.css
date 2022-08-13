@@ -97,3 +97,17 @@ body {
   overflow: hidden;
   transition: max-height 0.2s ease-out;
 }
+
+.footer {
+  padding-top: 40px;
+  text-align: center;
+  color: #d5d5d5;
+}
+
+.link {
+  color: #d8d8d8;
+}
+
+.link:hover {
+  color: #0000EE;
+}
