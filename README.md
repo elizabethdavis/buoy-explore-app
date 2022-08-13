@@ -1,5 +1,5 @@
 # Buoy Explore App
-Explore buoy data from the National Buoy Data Center (NBDC).
+Explore buoy data from the National Data Buoy Center (NDBC).
 
 ### Project Information
 

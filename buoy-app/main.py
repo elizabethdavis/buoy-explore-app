@@ -230,9 +230,6 @@ def update_plot(attr, old, new):
      buoy_input_updated = buoy_input.value
      print("buoy ID:" + buoy_input_updated)
 
-     #dropdown_updated = dropdown.value
-     #print("dropdown value: " + dropdown_updated)
-
      # find new source data
      source_updated = find_dataset(buoy_input = buoy_input_updated,
                                    start_date = start_date_updated,
@@ -246,9 +243,6 @@ def update_plot(attr, old, new):
 # ------------------------------------------------------------------------------
 buoy_input = TextInput(value='44066', title="Buoy ID Number", name="buoy_input")
 buoy_input.on_change("value", update_plot)
-
-#dropdown = Select(title="Select a Buoy", value="Select", options=buoys, name="buoy_input")
-#dropdown.on_change("value", update_plot)
 
 # ------------------------------------------------------------------------------
 # Widget: Data Table
@@ -297,9 +291,6 @@ controls = row(buoy_input, start_date_picker, end_date_picker)
 buoys = active_buoys(buoys)
 bokeh_doc.template_variables["buoys"] = buoys
 bokeh_doc.template_variables["buoy_input"] = buoy_input.value
-
-#dropdown = Select(title="Select a Buoy", value="Select", options=buoys, name="buoy_input")
-#dropdown.on_change("value", update_plot)
 
 # Send variables to index.html for display
 bokeh_doc.add_root(buoy_input)
