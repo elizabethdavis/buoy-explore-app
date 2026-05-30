@@ -1,0 +1,7 @@
+[phases.setup]
+nixPkgs = ["cacert"]
+
+[variables]
+SSL_CERT_FILE = "/etc/ssl/certs/ca-bundle.crt"
+REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-bundle.crt"
+CURL_CA_BUNDLE = "/etc/ssl/certs/ca-bundle.crt"
