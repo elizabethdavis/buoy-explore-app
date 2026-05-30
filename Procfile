@@ -1,1 +1,1 @@
-web: bokeh serve --port=$PORT --allow-websocket-origin=web-production-bc057.up.railway.app --address=0.0.0.0 --use-xheaders buoy-app
+web: bokeh serve --port=$PORT --allow-websocket-origin=web-production-bc057.up.railway.app --address=0.0.0.0 --use-xheaders --keep-alive 1000 buoy-app
