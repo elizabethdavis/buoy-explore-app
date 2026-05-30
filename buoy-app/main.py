@@ -4,7 +4,7 @@ import pandas as pd
 import itertools
 
 from bokeh.plotting import figure, curdoc
-from bokeh.models import ColumnDataSource, CDSView, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput, LabelSet, HoverTool, NumeralTickFormatter, Select
+from bokeh.models import ColumnDataSource, CDSView, DataTable, DateFormatter, TableColumn, CustomJS, DatePicker, TextInput, LabelSet, HoverTool, NumeralTickFormatter, Select, Div
 from bokeh.models.widgets import CheckboxGroup, NumberFormatter
 from bokeh.io import show, curdoc
 from bokeh.layouts import column, row, grid, WidgetBox
@@ -39,15 +39,25 @@ def active_buoys(buoys):
 # ------------------------------------------------------------------------------
 def find_dataset(buoy_input, start_date, end_date):
     data_url = 'https://dods.ndbc.noaa.gov/thredds/dodsC/data/stdmet/' + buoy_input + '/' + buoy_input + '.ncml'
-    ds = xr.open_dataset(data_url)
-    ds = ds.sel(time=slice(start_date, end_date))
-    df = ds.to_dataframe().reset_index().set_index('time')
-    source = ColumnDataSource(df)
-
+    
     print("url: " + data_url)
-    print("Data has been found for buoy #" + buoy_input)
+    
+    try:
+        ds = xr.open_dataset(data_url)
+        ds = ds.sel(time=slice(start_date, end_date))
+        print("Date range in dataset: " + str(ds.time.values[0]) + " to " + str(ds.time.values[-1]))
+        df = ds.to_dataframe().reset_index().set_index('time')
+        source = ColumnDataSource(df)
+        print("Data has been found for buoy #" + buoy_input)
+        return source, None
 
-    return source
+    except OSError as e:
+        print("No data found for buoy #" + buoy_input + " — " + str(e))
+        return None, "No data available for buoy #" + buoy_input + ". This buoy may be inactive or not reporting standard meteorological data. Try a different buoy ID."
+
+    except Exception as e:
+        print("Unexpected error for buoy #" + buoy_input + " — " + str(e))
+        return None, "An unexpected error occurred while fetching data for buoy #" + buoy_input + ". Please try again."
 
 # ------------------------------------------------------------------------------
 # Function: Create temperature plot
@@ -217,26 +227,36 @@ def make_speed_plot(source, buoy_input):
 # Inputs: Buoy ID Number, Date Range (start date and end date)
 # ------------------------------------------------------------------------------
 def update_plot(attr, old, new):
+    global source
 
-     # update start date
-     start_date_updated = start_date_picker.value
-     print("start date:" + start_date_updated)
+    # update start date
+    start_date_updated = start_date_picker.value
+    print("start date:" + start_date_updated)
 
-     # update end date
-     end_date_updated = end_date_picker.value
-     print("end date:" + end_date_updated)
+    # update end date
+    end_date_updated = end_date_picker.value
+    print("end date:" + end_date_updated)
 
-     # update buoy number
-     buoy_input_updated = buoy_input.value
-     print("buoy ID:" + buoy_input_updated)
+    # update buoy number
+    buoy_input_updated = buoy_input.value
+    print("buoy ID:" + buoy_input_updated)
 
-     # find new source data
-     source_updated = find_dataset(buoy_input = buoy_input_updated,
-                                   start_date = start_date_updated,
-                                   end_date = end_date_updated)
+    # find new source data
+    source_updated, error = find_dataset(buoy_input = buoy_input_updated,
+                                         start_date = start_date_updated,
+                                         end_date = end_date_updated)
 
-     # update source data
-     source.data = dict(source_updated.data)
+    if error:
+        # show error in the buoy input field as feedback and bail out gracefully
+        buoy_input.title = "⚠ " + error
+        print("Error shown to user: " + error)
+        return
+
+    # clear any previous error title
+    buoy_input.title = "Buoy ID Number"
+
+    # update source data
+    source.data = dict(source_updated.data)
 
 # ------------------------------------------------------------------------------
 # Widget: Text Input for Buoy Number
@@ -273,9 +293,26 @@ end_date_picker.on_change("value", update_plot)
 # ------------------------------------------------------------------------------
 # Create Charts
 # ------------------------------------------------------------------------------
-source = find_dataset(buoy_input = buoy_input.value,
-                      start_date = start_date_picker.value,
-                      end_date = end_date_picker.value)
+source, error = find_dataset(buoy_input = buoy_input.value,
+                             start_date = start_date_picker.value,
+                             end_date = end_date_picker.value)
+
+if error:
+    buoy_input.title = "⚠ " + error
+    print("Error shown to user: " + error)
+    source = ColumnDataSource(data=dict(
+        time=[],
+        air_temperature=[],
+        sea_surface_temperature=[],
+        dewpt_temperature=[],
+        air_pressure=[],
+        mean_wave_dir=[],
+        wind_dir=[],
+        wind_spd=[],
+        gust=[],
+    ))
+else:
+    buoy_input.title = "Buoy ID Number"
 
 p = make_temp_plot(source, buoy_input = buoy_input.value)
 p_dir = make_dir_plot(source, buoy_input = buoy_input.value)
@@ -286,7 +323,23 @@ p_pressure = make_pressure_plot(source, buoy_input = buoy_input.value)
 data_table = DataTable(source=source, columns=columns, height=280, name="data_table", sizing_mode="stretch_width")
 
 # put controls in a single element
-controls = row(buoy_input, start_date_picker, end_date_picker)
+data_note = Div(
+    text="""
+    <p style="color: #888; font-size: 12px; margin-top: 8px;">
+        📡 Data sourced from NOAA's National Data Buoy Center (NDBC). 
+        Historical archive availability varies by buoy — some stations 
+        may not have data past 2023. Enter any active buoy ID from the 
+        <a href="https://www.ndbc.noaa.gov" target="_blank" style="color: #888;">NDBC website</a>.
+    </p>
+    """,
+    sizing_mode="stretch_width",
+    name="data_note"
+)
+
+controls = column(
+    row(buoy_input, start_date_picker, end_date_picker),
+    data_note
+)
 
 buoys = active_buoys(buoys)
 bokeh_doc.template_variables["buoys"] = buoys
@@ -296,6 +349,7 @@ bokeh_doc.template_variables["buoy_input"] = buoy_input.value
 bokeh_doc.add_root(buoy_input)
 bokeh_doc.add_root(start_date_picker)
 bokeh_doc.add_root(end_date_picker)
+bokeh_doc.add_root(data_note)
 bokeh_doc.add_root(p)
 bokeh_doc.add_root(p_pressure)
 bokeh_doc.add_root(p_dir)
